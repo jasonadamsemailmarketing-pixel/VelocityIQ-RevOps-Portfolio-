@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VelocityIQ — AI Layer Implementation Spec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:    #07080f; --bg2: #0b0d1a; --surface: #101322; --s2: #171b2e;
+      --bdr:   rgba(148,163,184,0.09); --b2: rgba(148,163,184,0.16);
+      --amber: #f59e0b; --a-dim: rgba(245,158,11,0.1); --a-bdr: rgba(245,158,11,0.3);
+      --cyan:  #22d3ee; --c-dim: rgba(34,211,238,0.08); --c-bdr: rgba(34,211,238,0.28);
+      --green: #4ade80; --g-dim: rgba(74,222,128,0.1); --g-bdr: rgba(74,222,128,0.28);
+      --red:   #f87171;
+      --text:  #e8eaf4; --t2: #818aab; --t3: #454a68;
+      --mono: 'JetBrains Mono', monospace;
+      --body: 'DM Sans', sans-serif;
+      --disp: 'Syne', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--body); background: var(--bg); color: var(--text); font-size: 15px; -webkit-font-smoothing: antialiased; line-height: 1.65; }
+
+    /* PAGE */
+    .page { max-width: 900px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+
+    /* HEADER */
+    .doc-header { border-bottom: 1px solid var(--bdr); padding-bottom: 2.5rem; margin-bottom: 3rem; }
+    .doc-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; color: var(--cyan);
+      border: 1px solid var(--c-bdr); background: var(--c-dim);
+      padding: 4px 14px; border-radius: 99px; margin-bottom: 1.25rem; letter-spacing: 0.1em;
+    }
+    .doc-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+    h1 { font-family: var(--disp); font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 1rem; }
+    .doc-meta { display: flex; gap: 2rem; margin-top: 1.25rem; flex-wrap: wrap; }
+    .doc-meta-item { font-family: var(--mono); font-size: 11px; color: var(--t3); display: flex; align-items: center; gap: 6px; }
+    .doc-meta-item span { color: var(--t2); }
+
+    /* SECTION */
+    .spec-section { margin-bottom: 3rem; }
+    h2 { font-family: var(--disp); font-size: 1.4rem; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 0.75rem; color: var(--text); }
+    h3 { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--cyan); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.75rem; margin-top: 1.5rem; }
+    p { color: var(--t2); margin-bottom: 1rem; line-height: 1.75; }
+    p strong { color: var(--text); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--bdr); margin: 3rem 0; }
+
+    /* FLOW DIAGRAM */
+    .flow { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 1.5rem; background: var(--surface); border: 1px solid var(--bdr); border-radius: 12px; margin-bottom: 1.5rem; }
+    .flow-node {
+      flex-shrink: 0; background: var(--bg2); border: 1px solid var(--bdr);
+      border-radius: 8px; padding: 0.6rem 0.85rem; text-align: center; min-width: 90px;
+    }
+    .flow-node.active { border-color: var(--c-bdr); background: var(--c-dim); }
+    .flow-node.existing { border-color: var(--a-bdr); background: var(--a-dim); }
+    .fn-num { font-family: var(--mono); font-size: 9px; color: var(--t3); margin-bottom: 4px; letter-spacing: 0.08em; }
+    .fn-name { font-size: 12px; font-weight: 500; color: var(--text); }
+    .fn-badge { font-family: var(--mono); font-size: 9px; margin-top: 4px; }
+    .flow-node.active .fn-badge { color: var(--cyan); }
+    .flow-node.existing .fn-badge { color: var(--amber); }
+    .flow-arr { color: var(--t3); padding: 0 6px; flex-shrink: 0; font-size: 14px; }
+
+    /* CODE BLOCKS */
+    .code-block {
+      background: var(--bg2); border: 1px solid var(--bdr); border-left: 3px solid var(--cyan);
+      border-radius: 0 8px 8px 0; padding: 1.25rem 1.4rem; margin: 1rem 0;
+      font-family: var(--mono); font-size: 12px; line-height: 1.75;
+      overflow-x: auto; white-space: pre; color: var(--t2);
+    }
+    .code-block .key   { color: var(--cyan); }
+    .code-block .str   { color: #a5d6a7; }
+    .code-block .var   { color: var(--amber); }
+    .code-block .num   { color: #ce93d8; }
+    .code-block .cmnt  { color: var(--t3); font-style: italic; }
+
+    /* STEP CARDS */
+    .steps { display: flex; flex-direction: column; gap: 14px; }
+    .step-card {
+      background: var(--surface); border: 1px solid var(--bdr);
+      border-radius: 12px; padding: 1.25rem; display: flex; gap: 1rem;
+    }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      background: var(--c-dim); border: 1px solid var(--c-bdr);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--cyan);
+    }
+    .step-body h4 { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+    .step-body p  { font-size: 13px; color: var(--t2); margin: 0; line-height: 1.6; }
+    .step-body p strong { color: var(--text); font-weight: 500; }
+
+    /* INFO BOX */
+    .info-box {
+      background: var(--surface); border: 1px solid var(--bdr);
+      border-radius: 12px; padding: 1.25rem 1.4rem; margin: 1rem 0;
+    }
+    .info-box.cyan-border { border-left: 3px solid var(--cyan); border-radius: 0 12px 12px 0; }
+    .info-box.amber-border { border-left: 3px solid var(--amber); border-radius: 0 12px 12px 0; }
+    .info-box.green-border { border-left: 3px solid var(--green); border-radius: 0 12px 12px 0; }
+    .info-box p { margin: 0; font-size: 13px; color: var(--t2); }
+    .info-box p strong { color: var(--text); }
+
+    /* VARIABLES TABLE */
+    .var-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); border-radius: 12px; overflow: hidden; border: 1px solid var(--bdr); }
+    .var-table th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.09em; color: var(--t3); text-transform: uppercase; padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--bdr); background: var(--bg2); }
+    .var-table td { padding: 11px 14px; border-bottom: 1px solid var(--bdr); color: var(--t2); vertical-align: top; }
+    .var-table tr:last-child td { border-bottom: none; }
+    .var-table td:first-child { font-family: var(--mono); font-size: 11px; color: var(--amber); }
+    .var-table td:last-child { color: var(--t3); font-size: 12px; }
+
+    /* OUTPUT PREVIEW */
+    .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .output-card { background: var(--bg2); border: 1px solid var(--bdr); border-radius: 12px; padding: 1.25rem; }
+    .oc-label { font-family: var(--mono); font-size: 10px; color: var(--cyan); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+    .oc-preview { font-size: 12px; color: var(--t2); font-style: italic; line-height: 1.7; border-left: 2px solid var(--c-bdr); padding-left: 12px; }
+    .oc-dest { margin-top: 12px; font-family: var(--mono); font-size: 10px; color: var(--t3); }
+
+    /* PRICING TABLE */
+    .pricing-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .pricing-card { background: var(--surface); border: 1px solid var(--bdr); border-radius: 12px; padding: 1.25rem; text-align: center; }
+    .pricing-card.recommended { border-color: var(--g-bdr); background: var(--g-dim); }
+    .pc-name { font-family: var(--mono); font-size: 11px; color: var(--t2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+    .pc-price { font-family: var(--mono); font-size: 1.5rem; font-weight: 500; color: var(--text); line-height: 1; margin-bottom: 4px; }
+    .pc-sub { font-size: 12px; color: var(--t3); margin-bottom: 10px; }
+    .pc-feature { font-size: 12px; color: var(--t2); }
+    .pricing-card.recommended .pc-price { color: var(--green); }
+    .rec-badge { font-family: var(--mono); font-size: 10px; color: var(--green); background: var(--g-dim); border: 1px solid var(--g-bdr); padding: 2px 10px; border-radius: 99px; display: inline-block; margin-bottom: 8px; letter-spacing: 0.06em; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="doc-badge"><span class="doc-badge-dot"></span>V3 SPEC · AI LAYER · IN PROGRESS</div>
+    <h1>AI-Powered Rep Intelligence<br>Module — Implementation Spec</h1>
+    <p style="color:var(--t2); max-width:640px; margin-bottom:0; line-height:1.75;">
+      This document details the architecture, configuration, and step-by-step implementation of the AI enrichment module — a single Make.com HTTP call that adds personalized rep briefings and first-touch email drafts to every lead notification using the Google Gemini Flash API.
+    </p>
+    <div class="doc-meta">
+      <div class="doc-meta-item">Author <span>Jason Osarebo Adams</span></div>
+      <div class="doc-meta-item">System <span>VelocityIQ STL Engine 2.0</span></div>
+      <div class="doc-meta-item">Status <span style="color:var(--cyan)">In Progress</span></div>
+      <div class="doc-meta-item">Cost <span style="color:var(--green)">$0 / month</span></div>
+    </div>
+  </div>
+
+
+  <!-- PLACEMENT IN FLOW -->
+  <div class="spec-section">
+    <h2>Where This Module Lives</h2>
+    <p>The AI module is inserted between Step 07 (Notify) and Step 08 (Task) in Scenario 1. It receives the fully enriched, scored, and graded lead data, calls the Gemini API, and injects both outputs into the downstream Slack card and HubSpot note.</p>
+    <div class="flow">
+      <div class="flow-node existing">
+        <div class="fn-num">05</div>
+        <div class="fn-name">Grade</div>
+        <div class="fn-badge">Existing</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-node existing">
+        <div class="fn-num">06</div>
+        <div class="fn-name">Route</div>
+        <div class="fn-badge">Existing</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-node existing">
+        <div class="fn-num">07</div>
+        <div class="fn-name">Notify</div>
+        <div class="fn-badge">Existing</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-node active">
+        <div class="fn-num">07b</div>
+        <div class="fn-name">AI Call</div>
+        <div class="fn-badge">NEW</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-node active">
+        <div class="fn-num">07c</div>
+        <div class="fn-name">Parse AI</div>
+        <div class="fn-badge">NEW</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-node existing">
+        <div class="fn-num">08</div>
+        <div class="fn-name">Task</div>
+        <div class="fn-badge">Existing</div>
+      </div>
+      <div class="flow-arr">→</div>
+      <div class="flow-node existing">
+        <div class="fn-num">09</div>
+        <div class="fn-name">Track</div>
+        <div class="fn-badge">Existing</div>
+      </div>
+    </div>
+    <div class="info-box amber-border">
+      <p><strong>Important:</strong> This adds only 2 new modules to Scenario 1 — one HTTP module (the API call) and one JSON parser (to extract the two outputs). The Slack and HubSpot Note modules are updated to inject the AI output, but not duplicated.</p>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- API SETUP -->
+  <div class="spec-section">
+    <h2>Step 1 — Get Your Free Gemini API Key</h2>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Go to Google AI Studio</h4>
+          <p>Visit <strong>aistudio.google.com</strong> and sign in with your Google account. Click "Get API Key" in the left sidebar.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Create API Key</h4>
+          <p>Click "Create API Key" → "Create API key in new project." Copy the generated key. <strong>Store it in Make.com → Data Stores or your environment variables — never hardcode it.</strong></p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Verify the free tier limits</h4>
+          <p>Gemini 1.5 Flash: <strong>15 requests/minute</strong> and <strong>1 million tokens/day</strong> on the free tier. At 300 leads/month, you'll use fewer than 10K tokens total per month. Comfortably free.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- HTTP MODULE CONFIG -->
+  <div class="spec-section">
+    <h2>Step 2 — Configure the Make.com HTTP Module</h2>
+    <p>Add an HTTP "Make a request" module immediately after the Route module (Step 06). Configure it as follows:</p>
+
+    <h3>Module Configuration</h3>
+    <div class="code-block"><span class="key">URL:</span>         <span class="str">https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent</span>
+<span class="key">Method:</span>      <span class="str">POST</span>
+<span class="key">Headers:</span>
+  <span class="key">Content-Type:</span>  <span class="str">application/json</span>
+  <span class="key">x-goog-api-key:</span> <span class="var">{{YOUR_GEMINI_API_KEY}}</span>
+<span class="key">Body type:</span>   <span class="str">Raw (JSON)</span></div>
+
+    <h3>Request Body (paste into Make.com body field)</h3>
+    <div class="code-block">{
+  <span class="key">"contents"</span>: [
+    {
+      <span class="key">"parts"</span>: [
+        {
+          <span class="key">"text"</span>: <span class="str">"You are a B2B sales intelligence assistant. Given the following inbound lead data, generate TWO outputs in valid JSON only. No preamble, no markdown backticks.\n\nLead Data:\n- Name: {{1.lead_name}}\n- Company: {{1.company_name}}\n- Job Title: {{1.job_title}}\n- Company Size: {{1.company_size}} employees\n- Industry: {{1.industry}}\n- ICP Grade: {{4.icp_grade}}\n- Lead Score: {{4.lead_score}}/80\n- Intent Timeline: {{1.timeline}}\n- Use Case: {{1.use_case}}\n- Assigned Rep: {{6.rep_name}}\n\nRespond with this exact JSON structure:\n{\n  \"rep_briefing\": \"2-3 sentence briefing for {{6.rep_name}} explaining who this lead is, why they matter, and what to lead with on the call. Reference the grade and key signals.\",\n  \"email_draft\": \"A concise 3-sentence first-touch email the rep can send immediately. Personalised to the lead's company, role and timeline. Professional but warm. Include a specific meeting ask.\"\n}"</span>
+        }
+      ]
+    }
+  ],
+  <span class="key">"generationConfig"</span>: {
+    <span class="key">"temperature"</span>: <span class="num">0.4</span>,
+    <span class="key">"maxOutputTokens"</span>: <span class="num">400</span>,
+    <span class="key">"responseMimeType"</span>: <span class="str">"application/json"</span>
+  }
+}</div>
+    <div class="info-box cyan-border">
+      <p><strong>Variable substitution:</strong> Replace <code style="font-family:var(--mono); font-size:12px; color:var(--amber)">{{1.lead_name}}</code>, <code style="font-family:var(--mono); font-size:12px; color:var(--amber)">{{4.icp_grade}}</code> etc. with the actual Make.com variable references from your previous modules. Module numbers depend on your scenario structure.</p>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- VARIABLE REFERENCE -->
+  <div class="spec-section">
+    <h2>Step 3 — Variable Reference Table</h2>
+    <p>Map these prompt placeholders to your Make.com module outputs:</p>
+    <table class="var-table">
+      <thead>
+        <tr><th>Placeholder</th><th>Source</th><th>Make.com Variable</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{lead_name}}</td>
+          <td>Tally.so webhook</td>
+          <td>Module 1 → "full_name"</td>
+          <td>First + Last Name fields combined</td>
+        </tr>
+        <tr>
+          <td>{{company_name}}</td>
+          <td>Tally.so or Enrichment</td>
+          <td>Module 1 or 2 → "company"</td>
+          <td>Prefer enriched value if available</td>
+        </tr>
+        <tr>
+          <td>{{job_title}}</td>
+          <td>Tally.so webhook</td>
+          <td>Module 1 → "job_title"</td>
+          <td>Direct from form field</td>
+        </tr>
+        <tr>
+          <td>{{company_size}}</td>
+          <td>Enrichment module</td>
+          <td>Module 2 → "employee_count"</td>
+          <td>Numeric value from enrichment</td>
+        </tr>
+        <tr>
+          <td>{{industry}}</td>
+          <td>Enrichment module</td>
+          <td>Module 2 → "industry"</td>
+          <td>Fallback to form field if null</td>
+        </tr>
+        <tr>
+          <td>{{icp_grade}}</td>
+          <td>Score module</td>
+          <td>Module 4 → "icp_grade"</td>
+          <td>Value: A, B, or C</td>
+        </tr>
+        <tr>
+          <td>{{lead_score}}</td>
+          <td>Score module</td>
+          <td>Module 4 → "lead_score"</td>
+          <td>Numeric, 0–80</td>
+        </tr>
+        <tr>
+          <td>{{timeline}}</td>
+          <td>Tally.so webhook</td>
+          <td>Module 1 → "timeline"</td>
+          <td>e.g. "Immediately", "1–3 months"</td>
+        </tr>
+        <tr>
+          <td>{{use_case}}</td>
+          <td>Tally.so webhook</td>
+          <td>Module 1 → "use_case"</td>
+          <td>Free text field from form</td>
+        </tr>
+        <tr>
+          <td>{{rep_name}}</td>
+          <td>Route module</td>
+          <td>Module 6 → "assigned_rep_name"</td>
+          <td>First name only for natural briefing</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- PARSE THE RESPONSE -->
+  <div class="spec-section">
+    <h2>Step 4 — Parse the API Response</h2>
+    <p>The Gemini response wraps the JSON output inside a content block. Add a <strong>JSON Parser</strong> module after the HTTP module to extract the two output fields.</p>
+
+    <h3>Response Path to the JSON String</h3>
+    <div class="code-block"><span class="cmnt">// The full response structure from Gemini looks like this:</span>
+{
+  <span class="key">"candidates"</span>: [{
+    <span class="key">"content"</span>: {
+      <span class="key">"parts"</span>: [{
+        <span class="key">"text"</span>: <span class="str">"{\"rep_briefing\": \"...\", \"email_draft\": \"...\"}"</span>
+      }]
+    }
+  }]
+}
+
+<span class="cmnt">// In Make.com, reference the text string as:</span>
+<span class="var">{{HTTP_MODULE.data.candidates[].content.parts[].text}}</span>
+
+<span class="cmnt">// Pass this into a JSON Parser module, then access:</span>
+<span class="var">{{JSON_PARSER.rep_briefing}}</span>   <span class="cmnt">→ Use in Slack card</span>
+<span class="var">{{JSON_PARSER.email_draft}}</span>    <span class="cmnt">→ Use in HubSpot note</span></div>
+
+    <div class="info-box green-border">
+      <p><strong>Pro tip:</strong> Add an error handler after the HTTP module. If the API call fails (rate limit, timeout), use Make.com's error directive to continue the scenario without the AI output — the Slack notification and task creation should never be blocked by a non-critical AI call.</p>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- INJECT INTO SLACK -->
+  <div class="spec-section">
+    <h2>Step 5 — Inject AI Output into Slack &amp; HubSpot</h2>
+    <p>Update the existing Slack (Step 07) and HubSpot Note modules to include the AI-generated content.</p>
+
+    <h3>Slack Block — Add After Existing Lead Fields</h3>
+    <div class="code-block">{
+  <span class="key">"type"</span>: <span class="str">"section"</span>,
+  <span class="key">"text"</span>: {
+    <span class="key">"type"</span>: <span class="str">"mrkdwn"</span>,
+    <span class="key">"text"</span>: <span class="str">"*🤖 Rep Briefing*\n{{JSON_PARSER.rep_briefing}}"</span>
+  }
+},
+{
+  <span class="key">"type"</span>: <span class="str">"divider"</span>
+},
+{
+  <span class="key">"type"</span>: <span class="str">"section"</span>,
+  <span class="key">"text"</span>: {
+    <span class="key">"type"</span>: <span class="str">"mrkdwn"</span>,
+    <span class="key">"text"</span>: <span class="str">"*✉️ First-Touch Email Draft*\n{{JSON_PARSER.email_draft}}"</span>
+  }
+}</div>
+
+    <h3>HubSpot Note Content Field</h3>
+    <div class="code-block"><span class="str">"AI REP INTELLIGENCE\n\nRep Briefing:\n{{JSON_PARSER.rep_briefing}}\n\nFirst-Touch Email Draft:\n{{JSON_PARSER.email_draft}}\n\nGenerated: {{now}} | Lead Score: {{lead_score}}/80 | Grade: {{icp_grade}}"</span></div>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- EXPECTED OUTPUT -->
+  <div class="spec-section">
+    <h2>Expected Output — Sample Lead</h2>
+    <p>Given a Grade A lead: Marcus Johnson, VP Revenue at Acme Corp (350 employees, SaaS, "Immediately" intent, score 74):</p>
+    <div class="output-grid">
+      <div class="output-card">
+        <div class="oc-label">Rep Briefing → Slack Card</div>
+        <div class="oc-preview">"Sarah, this is an A-grade lead from Acme Corp — a 350-person SaaS company with a VP of Revenue who wants to move immediately. Lead score of 74/80 makes this your highest-priority call this morning. Lead with revenue ops efficiency and Q3 timelines."</div>
+        <div class="oc-dest">→ Injected into Slack block · visible before dialling</div>
+      </div>
+      <div class="output-card">
+        <div class="oc-label">Email Draft → HubSpot Note</div>
+        <div class="oc-preview">"Hi Marcus — saw your demo request for VelocityIQ. Revenue operations tooling is exactly what fast-scaling SaaS teams are solving heading into Q3. Given Acme's size and your timeline, I think we can show you something highly relevant in 15 minutes — does this week work?"</div>
+        <div class="oc-dest">→ Stored as HubSpot contact note · rep copies to send</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+
+  <!-- API PRICING -->
+  <div class="spec-section">
+    <h2>Cost Comparison — AI API Options</h2>
+    <p>All three options are viable. Gemini Flash is recommended for maximum free tier headroom.</p>
+    <div class="pricing-row">
+      <div class="pricing-card recommended">
+        <div class="rec-badge">Recommended</div>
+        <div class="pc-name">Gemini 1.5 Flash</div>
+        <div class="pc-price">$0</div>
+        <div class="pc-sub">1M tokens/day free tier</div>
+        <div class="pc-feature">15 req/min · Google AI Studio · No card required</div>
+      </div>
+      <div class="pricing-card">
+        <div class="pc-name" style="margin-top:32px;">Claude Haiku</div>
+        <div class="pc-price">~$0.03</div>
+        <div class="pc-sub">per 300 leads/month</div>
+        <div class="pc-feature">$5 free credits · Anthropic API · Excellent quality</div>
+      </div>
+      <div class="pricing-card">
+        <div class="pc-name" style="margin-top:32px;">Cohere Command R</div>
+        <div class="pc-price">$0</div>
+        <div class="pc-sub">Trial tier available</div>
+        <div class="pc-feature">Free trial · No card for low volume · Good for structured output</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- TESTING -->
+  <div class="spec-section">
+    <h2>Testing Checklist</h2>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num" style="background:var(--a-dim);border-color:var(--a-bdr);color:var(--amber);">✓</div>
+        <div class="step-body">
+          <h4>Test the HTTP module in isolation</h4>
+          <p>Run the module with hardcoded test values first. Confirm the API returns valid JSON with <strong>rep_briefing</strong> and <strong>email_draft</strong> keys before connecting to the rest of the scenario.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num" style="background:var(--a-dim);border-color:var(--a-bdr);color:var(--amber);">✓</div>
+        <div class="step-body">
+          <h4>Test the JSON parser with the actual response structure</h4>
+          <p>Gemini wraps the JSON in <code style="font-family:var(--mono);font-size:12px;color:var(--amber)">candidates[0].content.parts[0].text</code>. Confirm your parser path reaches the inner JSON string before marking done.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num" style="background:var(--a-dim);border-color:var(--a-bdr);color:var(--amber);">✓</div>
+        <div class="step-body">
+          <h4>Submit a test lead end-to-end</h4>
+          <p>Submit the Tally form with test data and verify the Slack notification includes both the Rep Briefing and Email Draft sections below the standard lead fields.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num" style="background:var(--a-dim);border-color:var(--a-bdr);color:var(--amber);">✓</div>
+        <div class="step-body">
+          <h4>Test error handling</h4>
+          <p>Temporarily break the API URL and confirm the scenario <strong>continues to execute</strong> (Slack notification still fires, task still creates) even when the AI module fails. The AI output is enrichment — never a dependency.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="border-top:1px solid var(--bdr); padding-top:2rem; margin-top:2rem;">
+    <p style="font-family:var(--mono); font-size:11px; color:var(--t3);">VelocityIQ STL Engine 2.0 · AI Layer Spec · Jason Osarebo Adams · Revenue Operations</p>
+  </div>
+
+</div>
+</body>
+</html>
