@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VelocityIQ — Live Demo | Speed-To-Lead Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#07080f;--bg2:#0b0d1a;--surface:#101322;--s2:#171b2e;
+      --bdr:rgba(148,163,184,0.09);--b2:rgba(148,163,184,0.17);
+      --amber:#f59e0b;--a-dim:rgba(245,158,11,0.1);--a-bdr:rgba(245,158,11,0.32);
+      --cyan:#22d3ee;--c-dim:rgba(34,211,238,0.08);--c-bdr:rgba(34,211,238,0.28);
+      --green:#4ade80;--g-dim:rgba(74,222,128,0.1);--g-bdr:rgba(74,222,128,0.28);
+      --red:#f87171;--r-dim:rgba(248,113,113,0.1);--r-bdr:rgba(248,113,113,0.3);
+      --text:#e8eaf4;--t2:#818aab;--t3:#454a68;
+      --mono:'JetBrains Mono',monospace;
+      --body:'DM Sans',sans-serif;
+      --disp:'Syne',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:var(--body);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(7,8,15,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr);}
+    .nav-logo{font-family:var(--mono);font-size:13px;color:var(--amber);text-decoration:none;}
+    .nav-logo span{color:var(--t3);}
+    .nav-back{font-family:var(--mono);font-size:12px;color:var(--t2);text-decoration:none;border:1px solid var(--bdr);padding:5px 14px;border-radius:6px;transition:color .2s,border-color .2s;}
+    .nav-back:hover{color:var(--amber);border-color:var(--a-bdr);}
+    .screen{min-height:100vh;padding-top:56px;display:none;flex-direction:column;align-items:center;justify-content:center;}
+    .screen.active{display:flex;}
+
+    /* FORM */
+    #s-form{padding:80px 1.5rem 4rem;}
+    .form-wrap{width:100%;max-width:560px;}
+    .form-eyebrow{font-family:var(--mono);font-size:11px;color:var(--amber);letter-spacing:.14em;text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);animation:blink 2s infinite;flex-shrink:0;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+    .form-title{font-family:var(--disp);font-size:clamp(1.75rem,4vw,2.5rem);font-weight:800;letter-spacing:-.025em;line-height:1.1;margin-bottom:.75rem;}
+    .form-sub{font-size:14px;color:var(--t2);line-height:1.75;margin-bottom:2rem;max-width:480px;}
+    .form-sub strong{color:var(--text);font-weight:500;}
+    .form-card{background:var(--surface);border:1px solid var(--b2);border-radius:16px;padding:1.75rem;}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+    .field-full{margin-bottom:14px;}
+    .field{display:flex;flex-direction:column;gap:6px;}
+    label{font-size:12px;color:var(--t2);font-family:var(--mono);letter-spacing:.04em;}
+    input,select,textarea{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);font-family:var(--body);outline:none;transition:border-color .2s;width:100%;}
+    input:focus,select:focus,textarea:focus{border-color:var(--a-bdr);}
+    select option{background:var(--bg2);color:var(--text);}
+    textarea{resize:none;height:72px;line-height:1.55;}
+    .submit-btn{width:100%;margin-top:1.5rem;background:var(--amber);color:#07080f;border:none;border-radius:8px;padding:14px;font-family:var(--mono);font-size:14px;font-weight:500;cursor:pointer;transition:opacity .2s;letter-spacing:.02em;}
+    .submit-btn:hover{opacity:.88;}
+    .form-note{text-align:center;font-size:11px;color:var(--t3);margin-top:1rem;font-family:var(--mono);}
+
+    /* PROCESSING */
+    #s-proc{padding:80px 1.5rem 4rem;}
+    .proc-wrap{width:100%;max-width:580px;}
+    .proc-header{text-align:center;margin-bottom:2.5rem;}
+    .proc-spinner{width:48px;height:48px;border-radius:50%;border:2px solid var(--bdr);border-top-color:var(--amber);animation:spin .8s linear infinite;margin:0 auto 1.25rem;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .proc-title{font-family:var(--disp);font-size:1.4rem;font-weight:700;margin-bottom:.5rem;}
+    .proc-sub{font-size:13px;color:var(--t2);}
+    .proc-name-span{color:var(--amber);}
+    .prog-bg{height:3px;background:var(--bdr);border-radius:99px;margin-bottom:2rem;overflow:hidden;}
+    .prog-fill{height:100%;background:var(--amber);border-radius:99px;width:0%;transition:width .4s ease;}
+    .steps-list{display:flex;flex-direction:column;gap:10px;}
+    .step-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bdr);border-radius:10px;padding:.85rem 1rem;opacity:.35;transition:opacity .3s,border-color .3s;}
+    .step-item.active{opacity:1;}
+    .step-item.done{opacity:1;border-color:var(--g-bdr);}
+    .step-icon-box{width:28px;height:28px;border-radius:50%;background:var(--bg2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+    .step-item.active .step-icon-box{background:var(--a-dim);border-color:var(--a-bdr);}
+    .step-item.done .step-icon-box{background:var(--g-dim);border-color:var(--g-bdr);}
+    .step-txt{font-size:13px;color:var(--t2);flex:1;line-height:1.4;}
+    .step-item.active .step-txt,.step-item.done .step-txt{color:var(--text);}
+    .step-chk{font-family:var(--mono);font-size:11px;color:var(--green);display:none;flex-shrink:0;}
+    .step-item.done .step-chk{display:block;}
+
+    /* RESULTS */
+    #s-results{padding:72px 1.5rem 4rem;align-items:flex-start;}
+    .results-container{width:100%;max-width:1060px;margin:0 auto;}
+    .results-hero{text-align:center;padding:2rem 0 2.5rem;}
+    .res-badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;border:1px solid var(--g-bdr);background:var(--g-dim);color:var(--green);padding:5px 16px;border-radius:99px;margin-bottom:1.25rem;letter-spacing:.1em;}
+    .res-badge::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);}
+    .res-title{font-family:var(--disp);font-size:clamp(1.5rem,3.5vw,2.25rem);font-weight:800;letter-spacing:-.02em;margin-bottom:.5rem;}
+    .res-sub{font-size:14px;color:var(--t2);line-height:1.7;}
+    .res-meta{display:flex;align-items:center;justify-content:center;gap:0;border:1px solid var(--b2);border-radius:10px;background:var(--surface);margin:1.5rem auto 0;max-width:560px;overflow:hidden;}
+    .rm-item{flex:1;padding:.75rem 1rem;text-align:center;border-right:1px solid var(--bdr);}
+    .rm-item:last-child{border-right:none;}
+    .rm-val{font-family:var(--mono);font-size:1.1rem;font-weight:500;display:block;line-height:1;}
+    .rm-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;display:block;}
+    .results-grid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:16px;margin-bottom:16px;}
+    .panel{background:var(--surface);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;}
+    .panel-lbl{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;padding:.85rem 1.1rem;border-bottom:1px solid var(--bdr);background:var(--bg2);}
+
+    /* SLACK */
+    .slack-ui{display:grid;grid-template-columns:190px 1fr;}
+    .slack-sb{background:#1a1d21;padding:1rem .75rem;min-height:320px;}
+    .slack-ws{font-size:13px;font-weight:500;color:#d1d2d3;margin-bottom:1rem;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08);}
+    .slack-sec{font-size:10px;color:#6b6f76;text-transform:uppercase;letter-spacing:.08em;margin:.75rem 0 4px;padding:0 4px;}
+    .slack-ch{font-size:13px;color:#6b6f76;padding:3px 8px;border-radius:4px;margin-bottom:1px;}
+    .slack-ch.on{background:#1164a3;color:#fff;font-weight:500;}
+    .slack-ch::before{content:'# ';}
+    .slack-main{background:#1a1d21;padding:1rem;}
+    .slack-msg-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+    .slack-av{width:32px;height:32px;border-radius:6px;background:var(--a-dim);border:1px solid var(--a-bdr);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+    .slack-bot-name{font-size:13px;font-weight:500;color:#d1d2d3;}
+    .slack-app-tag{font-size:10px;background:#1164a3;color:#fff;padding:1px 6px;border-radius:3px;margin-left:4px;font-weight:500;}
+    .slack-time{font-size:11px;color:#6b6f76;margin-left:auto;}
+    .slack-block{border:1px solid rgba(255,255,255,.08);border-radius:6px;background:#222529;overflow:hidden;}
+    .slack-grade-bar{height:4px;}
+    .gb-a{background:var(--green);}
+    .gb-b{background:var(--amber);}
+    .gb-c{background:var(--t3);}
+    .slack-bc{padding:.85rem 1rem;}
+    .slack-heading{font-size:12px;font-weight:500;color:#d1d2d3;margin-bottom:.65rem;display:flex;align-items:center;gap:8px;}
+    .grade-pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:99px;font-weight:500;}
+    .gp-a{background:rgba(74,222,128,.2);color:var(--green);}
+    .gp-b{background:rgba(245,158,11,.2);color:var(--amber);}
+    .gp-c{background:rgba(148,163,184,.15);color:#6b6f76;}
+    .slack-f{font-size:12px;color:#a0a3a9;margin-bottom:4px;line-height:1.5;}
+    .slack-f strong{color:#d1d2d3;font-weight:500;}
+    .slack-div{height:1px;background:rgba(255,255,255,.07);margin:.65rem 0;}
+    .slack-assigned{font-size:12px;color:#a0a3a9;margin-bottom:.65rem;}
+    .slack-assigned strong{color:#d1d2d3;font-weight:500;}
+    .slack-btns{display:flex;gap:8px;}
+    .slack-btn{font-size:12px;color:#d1d2d3;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:5px 12px;cursor:default;}
+
+    /* SCORE */
+    .score-content{padding:1.1rem;}
+    .score-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--bdr);}
+    .score-big{font-family:var(--mono);font-size:2.5rem;font-weight:500;color:var(--amber);line-height:1;}
+    .score-sub{font-size:11px;color:var(--t2);margin-top:4px;}
+    .grade-circle{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:1.75rem;font-weight:800;flex-shrink:0;}
+    .gc-a{background:var(--g-dim);border:2px solid var(--g-bdr);color:var(--green);}
+    .gc-b{background:var(--a-dim);border:2px solid var(--a-bdr);color:var(--amber);}
+    .gc-c{background:rgba(70,74,104,.2);border:2px solid var(--bdr);color:var(--t2);}
+    .signal-bars{display:flex;flex-direction:column;gap:10px;}
+    .sig-row{display:flex;flex-direction:column;gap:5px;}
+    .sig-top{display:flex;justify-content:space-between;align-items:center;}
+    .sig-name{font-size:12px;color:var(--t2);}
+    .sig-pts{font-family:var(--mono);font-size:11px;color:var(--amber);}
+    .sig-bg{height:5px;background:var(--bdr);border-radius:99px;overflow:hidden;}
+    .sig-fill{height:100%;background:var(--amber);border-radius:99px;width:0%;transition:width 1s ease;}
+    .rep-row{margin-top:1.1rem;background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:.85rem 1rem;display:flex;align-items:center;gap:10px;}
+    .rep-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:500;flex-shrink:0;border:2px solid;}
+    .rep-name{font-size:13px;font-weight:500;color:var(--text);}
+    .rep-terr{font-size:11px;color:var(--t2);margin-top:2px;}
+    .rep-tag{font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-left:auto;}
+
+    /* SLA + SPEED */
+    .sla-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    .timer-content{padding:1.5rem;display:flex;flex-direction:column;align-items:center;}
+    .timer-tag{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;}
+    .timer-num{font-family:var(--mono);font-size:3.5rem;font-weight:500;line-height:1;margin-bottom:.75rem;transition:color .5s;}
+    .timer-prog-bg{width:100%;height:6px;background:var(--bdr);border-radius:99px;overflow:hidden;margin-bottom:.75rem;}
+    .timer-prog-fill{height:100%;background:var(--green);border-radius:99px;width:100%;transition:width 1s linear,background .5s;}
+    .timer-status{font-family:var(--mono);font-size:11px;letter-spacing:.08em;}
+    .ts-ok{color:var(--green);}
+    .ts-warn{color:var(--amber);}
+    .ts-breach{color:var(--red);}
+    .timer-note{font-size:12px;color:var(--t3);text-align:center;margin-top:.5rem;line-height:1.5;}
+    .speed-content{padding:1.25rem;}
+    .speed-lbl{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;}
+    .speed-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .speed-row:last-of-type{margin-bottom:0;}
+    .speed-tag-lbl{font-size:11px;font-family:var(--mono);width:88px;flex-shrink:0;}
+    .speed-tag-lbl.ok{color:var(--green);}
+    .speed-tag-lbl.bad{color:var(--red);}
+    .speed-bar-bg{flex:1;height:8px;background:var(--bdr);border-radius:99px;overflow:hidden;}
+    .speed-bar-ok{height:100%;border-radius:99px;background:var(--green);}
+    .speed-bar-bad{height:100%;border-radius:99px;background:rgba(248,113,113,.3);}
+    .speed-val{font-family:var(--mono);font-size:11px;width:84px;text-align:right;flex-shrink:0;}
+    .speed-val.ok{color:var(--green);}
+    .speed-val.bad{color:var(--red);}
+    .speed-note{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--bdr);font-size:13px;color:var(--t2);text-align:center;line-height:1.6;}
+    .speed-note strong{color:var(--text);font-weight:500;}
+
+    /* BOTTOM */
+    .bottom-strip{background:var(--surface);border:1px solid var(--bdr);border-radius:14px;padding:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;}
+    .bs-text h3{font-family:var(--disp);font-size:1.1rem;font-weight:700;margin-bottom:.35rem;}
+    .bs-text p{font-size:13px;color:var(--t2);line-height:1.6;}
+    .bs-note{font-size:11px;color:var(--t3);margin-top:.5rem;font-family:var(--mono);}
+    .bs-btns{display:flex;gap:10px;flex-shrink:0;}
+    .btn-reset{font-family:var(--mono);font-size:12px;color:var(--t2);border:1px solid var(--b2);padding:10px 20px;border-radius:8px;cursor:pointer;background:transparent;transition:color .2s,border-color .2s;}
+    .btn-reset:hover{color:var(--text);border-color:var(--b2);}
+    .btn-port{font-family:var(--mono);font-size:12px;color:#07080f;background:var(--amber);border:none;padding:10px 20px;border-radius:8px;cursor:pointer;text-decoration:none;font-weight:500;transition:opacity .2s;display:inline-block;}
+    .btn-port:hover{opacity:.85;}
+
+    @media(max-width:800px){
+      .results-grid{grid-template-columns:1fr;}
+      .slack-ui{grid-template-columns:1fr;}
+      .slack-sb{display:none;}
+      .sla-row{grid-template-columns:1fr;}
+      .field-row{grid-template-columns:1fr;}
+      .res-meta{flex-wrap:wrap;}
+      .rm-item{min-width:48%;border-bottom:1px solid var(--bdr);}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">VelocityIQ <span>/ STL Engine</span></a>
+  <a href="index.html" class="nav-back">← Back to portfolio</a>
+</nav>
+
+<!-- SCREEN 1: FORM -->
+<div class="screen active" id="s-form">
+  <div class="form-wrap">
+    <div class="form-eyebrow"><span class="live-dot"></span>Live demo — browser simulation</div>
+    <h1 class="form-title">Submit yourself as a lead.<br>Watch what happens.</h1>
+    <p class="form-sub">Enter your real details. The system will <strong>score you across 4 ICP signals</strong>, assign a rep, generate a Slack notification with your name on it, and start a 5-minute SLA countdown — exactly as it does in production.</p>
+    <div class="form-card">
+      <form id="demo-form" autocomplete="off">
+        <div class="field-row">
+          <div class="field"><label>Your full name</label><input type="text" id="f-name" placeholder="e.g. Marcus Johnson" required/></div>
+          <div class="field"><label>Company name</label><input type="text" id="f-company" placeholder="e.g. Acme Corp" required/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Job title</label><input type="text" id="f-title" placeholder="e.g. VP of Revenue" required/></div>
+          <div class="field"><label>Company size</label>
+            <select id="f-size" required>
+              <option value="">Select range...</option>
+              <option value="1-10">1–10 employees</option>
+              <option value="11-50">11–50 employees</option>
+              <option value="51-200">51–200 employees</option>
+              <option value="201-500">201–500 employees</option>
+              <option value="501-1000">501–1,000 employees</option>
+              <option value="1000+">1,000+ employees</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Industry</label>
+            <select id="f-industry" required>
+              <option value="">Select industry...</option>
+              <option value="SaaS / Tech">SaaS / Tech</option>
+              <option value="Finance">Finance</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="E-commerce">E-commerce</option>
+              <option value="Manufacturing">Manufacturing</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Purchase timeline</label>
+            <select id="f-timeline" required>
+              <option value="">Select timeline...</option>
+              <option value="Immediately">Immediately</option>
+              <option value="Within 1 month">Within 1 month</option>
+              <option value="1-3 months">1–3 months</option>
+              <option value="Just exploring">Just exploring</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-full">
+          <div class="field"><label>What are you looking to solve? (optional)</label><textarea id="f-usecase" placeholder="e.g. We need to improve inbound lead response time and rep accountability..."></textarea></div>
+        </div>
+        <button type="submit" class="submit-btn">Submit test lead →</button>
+      </form>
+    </div>
+    <p class="form-note">🔒 Simulation only — no data is sent, stored or transmitted anywhere</p>
+  </div>
+</div>
+
+
+<!-- SCREEN 2: PROCESSING -->
+<div class="screen" id="s-proc">
+  <div class="proc-wrap">
+    <div class="proc-header">
+      <div class="proc-spinner" id="proc-spinner"></div>
+      <h2 class="proc-title">Processing <span class="proc-name-span" id="proc-name">your lead</span></h2>
+      <p class="proc-sub">Watch the system work across 6 tools in real time</p>
+    </div>
+    <div class="prog-bg"><div class="prog-fill" id="proc-prog"></div></div>
+    <div class="steps-list" id="steps-list"></div>
+  </div>
+</div>
+
+
+<!-- SCREEN 3: RESULTS -->
+<div class="screen" id="s-results">
+  <div class="results-container">
+    <div class="results-hero">
+      <div class="res-badge">Lead processed successfully</div>
+      <h2 class="res-title">Here's what just happened to your lead</h2>
+      <p class="res-sub">Enriched, scored, routed, and rep notified — in under 5 seconds.</p>
+      <div class="res-meta">
+        <div class="rm-item"><span class="rm-val" id="r-time" style="color:var(--amber)">4.7s</span><span class="rm-lbl">Process time</span></div>
+        <div class="rm-item"><span class="rm-val" id="r-score" style="color:var(--amber)">—</span><span class="rm-lbl">Lead score</span></div>
+        <div class="rm-item"><span class="rm-val" id="r-grade">—</span><span class="rm-lbl">Grade</span></div>
+        <div class="rm-item"><span class="rm-val" id="r-rep" style="color:var(--amber)">—</span><span class="rm-lbl">Assigned rep</span></div>
+      </div>
+    </div>
+
+    <div class="results-grid">
+      <!-- SLACK CARD -->
+      <div class="panel">
+        <div class="panel-lbl">Slack — #velocityiq-velocityiq-new-leads channel notification</div>
+        <div class="slack-ui">
+          <div class="slack-sb">
+            <div class="slack-ws">VelocityIQ</div>
+            <div class="slack-sec">Channels</div>
+            <div class="slack-ch">general</div>
+            <div class="slack-ch">sales-team</div>
+            <div class="slack-ch on">new-leads</div>
+            <div class="slack-ch">sla-escalations</div>
+            <div class="slack-ch">deal-updates</div>
+          </div>
+          <div class="slack-main">
+            <div class="slack-msg-hdr">
+              <div class="slack-av">⚡</div>
+              <div><span class="slack-bot-name">VelocityIQ</span><span class="slack-app-tag">APP</span></div>
+              <span class="slack-time" id="slack-ts">Today</span>
+            </div>
+            <div class="slack-block">
+              <div class="slack-grade-bar" id="slack-grade-bar"></div>
+              <div class="slack-bc">
+                <div class="slack-heading"><span id="sl-heading">🚨 NEW LEAD</span><span class="grade-pill" id="sl-grade-pill"></span></div>
+                <div class="slack-f"><strong id="sl-name">—</strong></div>
+                <div class="slack-f">🏢 <strong id="sl-co">—</strong></div>
+                <div class="slack-f">💼 <strong id="sl-title">—</strong></div>
+                <div class="slack-f">📊 Lead Score: <strong id="sl-score">—</strong></div>
+                <div class="slack-f">🏭 Industry: <strong id="sl-ind">—</strong></div>
+                <div class="slack-f">👥 Size: <strong id="sl-size">—</strong></div>
+                <div class="slack-f">⚡ Timeline: <strong id="sl-tl">—</strong></div>
+                <div class="slack-div"></div>
+                <div class="slack-assigned">Assigned → <strong id="sl-rep">—</strong> &nbsp;·&nbsp; SLA: <strong style="color:var(--amber)">5 minutes</strong></div>
+                <div class="slack-btns">
+                  <div class="slack-btn">View in HubSpot ↗</div>
+                  <div class="slack-btn">Open Task ↗</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCORE PANEL -->
+      <div class="panel">
+        <div class="panel-lbl">ICP scoring breakdown</div>
+        <div class="score-content">
+          <div class="score-top">
+            <div><div class="score-big" id="score-big">—</div><div class="score-sub">out of 80 points</div></div>
+            <div class="grade-circle" id="grade-circle">—</div>
+          </div>
+          <div class="signal-bars">
+            <div class="sig-row"><div class="sig-top"><span class="sig-name">Company size</span><span class="sig-pts" id="sp-size">—</span></div><div class="sig-bg"><div class="sig-fill" id="sb-size"></div></div></div>
+            <div class="sig-row"><div class="sig-top"><span class="sig-name">Industry fit</span><span class="sig-pts" id="sp-ind">—</span></div><div class="sig-bg"><div class="sig-fill" id="sb-ind"></div></div></div>
+            <div class="sig-row"><div class="sig-top"><span class="sig-name">Job seniority</span><span class="sig-pts" id="sp-sen">—</span></div><div class="sig-bg"><div class="sig-fill" id="sb-sen"></div></div></div>
+            <div class="sig-row"><div class="sig-top"><span class="sig-name">Intent &amp; timeline</span><span class="sig-pts" id="sp-tl">—</span></div><div class="sig-bg"><div class="sig-fill" id="sb-tl"></div></div></div>
+          </div>
+          <div class="rep-row">
+            <div class="rep-av" id="rep-av">—</div>
+            <div><div class="rep-name" id="rep-name">—</div><div class="rep-terr" id="rep-terr">—</div></div>
+            <div class="rep-tag">Assigned rep</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sla-row">
+      <!-- TIMER -->
+      <div class="panel">
+        <div class="panel-lbl">Airtable SLA tracker — 5-minute response window</div>
+        <div class="timer-content">
+          <div class="timer-tag">SLA countdown — rep response required</div>
+          <div class="timer-num" id="timer-num">5:00</div>
+          <div class="timer-prog-bg"><div class="timer-prog-fill" id="timer-fill"></div></div>
+          <div class="timer-status ts-ok" id="timer-status">● WITHIN SLA</div>
+          <div class="timer-note" id="timer-note">Rep must contact this lead before the clock reaches 0:00</div>
+        </div>
+      </div>
+      <!-- SPEED -->
+      <div class="panel">
+        <div class="panel-lbl">Speed comparison — with vs. without the system</div>
+        <div class="speed-content">
+          <div class="speed-lbl">Time to first rep notification</div>
+          <div class="speed-row">
+            <span class="speed-tag-lbl ok">VelocityIQ</span>
+            <div class="speed-bar-bg"><div class="speed-bar-ok" style="width:1.7%"></div></div>
+            <span class="speed-val ok">4.7 sec</span>
+          </div>
+          <div class="speed-row">
+            <span class="speed-tag-lbl bad">No system</span>
+            <div class="speed-bar-bg"><div class="speed-bar-bad" style="width:100%"></div></div>
+            <span class="speed-val bad">47 min avg</span>
+          </div>
+          <div class="speed-note">
+            System delivers in <strong>4.7 seconds</strong>. Industry average: <strong>47 minutes</strong>.<br>
+            At 100× conversion advantage, the gap is the entire business case.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-strip">
+      <div class="bs-text">
+        <h3>Want to see the full system architecture?</h3>
+        <p>Every module, scoring logic, SLA governance, AI enrichment spec, and the live reporting dashboard — all documented in the portfolio.</p>
+        <p class="bs-note">Simulation only — no data was stored, sent or transmitted during this demo.</p>
+      </div>
+      <div class="bs-btns">
+        <button class="btn-reset" id="reset-btn">Try another lead ↺</button>
+        <a href="index.html" class="btn-port">View full portfolio →</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  let slaTimer = null, slaSeconds = 300;
+
+  function sizeScore(s){return({'1-10':5,'11-50':10,'51-200':20,'201-500':30,'501-1000':28,'1000+':25})[s]||5;}
+  function indScore(i){return({'SaaS / Tech':25,'Finance':20,'Healthcare':18,'E-commerce':15,'Manufacturing':12,'Other':5})[i]||5;}
+  function senScore(t){const v=t.toLowerCase();if(/\b(ceo|cro|cto|cmo|coo|cfo|founder|co-founder|owner|president|chief)\b/.test(v))return 25;if(/\b(vp|vice\s+president)\b/.test(v))return 20;if(/\b(director|head of|head)\b/.test(v))return 15;if(/\b(manager|senior|lead|principal)\b/.test(v))return 10;return 5;}
+  function tlScore(t){return({'Immediately':20,'Within 1 month':15,'1-3 months':10,'Just exploring':5})[t]||5;}
+  function grade(s){return s>=65?'A':s>=40?'B':'C';}
+  function rep(s){if(['201-500','501-1000','1000+'].includes(s))return{name:'Sarah Chen',initials:'SC',terr:'Enterprise · West Territory',c:'var(--green)',bg:'var(--g-dim)',bdr:'var(--g-bdr)'};if(s==='51-200')return{name:'Marcus Webb',initials:'MW',terr:'Mid-Market Territory',c:'var(--amber)',bg:'var(--a-dim)',bdr:'var(--a-bdr)'};return{name:'Jordan Lee',initials:'JL',terr:'SMB Territory',c:'var(--cyan)',bg:'var(--c-dim)',bdr:'var(--c-bdr)'};}
+
+  document.getElementById('demo-form').addEventListener('submit',function(e){
+    e.preventDefault();
+    const d={
+      name:$('f-name').value.trim(),
+      co:$('f-company').value.trim(),
+      title:$('f-title').value.trim(),
+      size:$('f-size').value,
+      ind:$('f-industry').value,
+      tl:$('f-timeline').value,
+    };
+    d.ss=sizeScore(d.size); d.si=indScore(d.ind); d.sse=senScore(d.title); d.stl=tlScore(d.tl);
+    d.score=Math.min(80,d.ss+d.si+d.sse+d.stl);
+    d.grade=grade(d.score); d.rep=rep(d.size);
+    runProcessing(d);
+  });
+
+  function runProcessing(d){
+    $('s-form').classList.remove('active');
+    $('s-proc').classList.add('active');
+    $('proc-name').textContent=d.name+' from '+d.co;
+    const now=new Date();
+    const ts=now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    const defs=[
+      {icon:'📡',txt:'Webhook received from Tally.so — payload parsed',ms:100},
+      {icon:'🔍',txt:'Domain lookup: enriching '+d.co+' with company intelligence',ms:600},
+      {icon:'🔁',txt:'Duplicate check — HubSpot searched, no existing contact found',ms:1100},
+      {icon:'📊',txt:'ICP signals extracted across 4 dimensions',ms:1600},
+      {icon:'🧮',txt:'Lead Score calculated: '+d.score+'/80 — Grade '+d.grade+' assigned',ms:2250},
+      {icon:'🗺️',txt:'Lead routed → '+d.rep.name+' ('+d.rep.terr+')',ms:2850},
+      {icon:'💬',txt:'Slack notification sent to #velocityiq-velocityiq-new-leads channel',ms:3350},
+      {icon:'🔶',txt:'HubSpot contact created — 10 custom properties written',ms:3850},
+      {icon:'🗂️',txt:'Airtable SLA Tracker updated — Status: Pending',ms:4250},
+      {icon:'📋',txt:'Google Sheets Lead Response Log entry written',ms:4650},
+    ];
+    const list=$('steps-list'); list.innerHTML='';
+    defs.forEach((s,i)=>{
+      const el=document.createElement('div');
+      el.className='step-item'; el.id='si'+i;
+      el.innerHTML='<div class="step-icon-box">'+s.icon+'</div><div class="step-txt">'+s.txt+'</div><span class="step-chk">✓</span>';
+      list.appendChild(el);
+    });
+    defs.forEach((s,i)=>{
+      setTimeout(()=>{
+        if(i>0){document.getElementById('si'+(i-1)).classList.remove('active');document.getElementById('si'+(i-1)).classList.add('done');}
+        document.getElementById('si'+i).classList.add('active');
+        $('proc-prog').style.width=((i+1)/defs.length*100)+'%';
+      },s.ms);
+    });
+    setTimeout(()=>{document.getElementById('si'+(defs.length-1)).classList.remove('active');document.getElementById('si'+(defs.length-1)).classList.add('done');$('proc-prog').style.width='100%';const sp=$('proc-spinner');sp.style.animation='none';sp.style.border='2px solid var(--green)';},5050);
+    setTimeout(()=>showResults(d,ts),5700);
+  }
+
+  function showResults(d,ts){
+    $('s-proc').classList.remove('active');
+    const rs=$('s-results'); rs.style.display='flex'; rs.classList.add('active');
+    const gc=d.grade==='A'?'var(--green)':d.grade==='B'?'var(--amber)':'var(--t2)';
+    $('r-score').textContent=d.score+'/80';
+    $('r-grade').textContent=d.grade; $('r-grade').style.color=gc;
+    $('r-rep').textContent=d.rep.name.split(' ')[0];
+    $('slack-ts').textContent='Today at '+ts;
+    $('slack-grade-bar').className='slack-grade-bar gb-'+d.grade.toLowerCase();
+    $('sl-heading').textContent='🚨 NEW LEAD — GRADE '+d.grade;
+    $('sl-grade-pill').textContent='GRADE '+d.grade; $('sl-grade-pill').className='grade-pill gp-'+d.grade.toLowerCase();
+    $('sl-name').textContent='👤 '+d.name;
+    $('sl-co').textContent=d.co; $('sl-title').textContent=d.title;
+    $('sl-score').textContent=d.score+'/80'; $('sl-ind').textContent=d.ind;
+    $('sl-size').textContent=d.size+' employees'; $('sl-tl').textContent=d.tl;
+    $('sl-rep').textContent=d.rep.name;
+    $('score-big').textContent=d.score;
+    $('grade-circle').textContent=d.grade; $('grade-circle').className='grade-circle gc-'+d.grade.toLowerCase();
+    const sigs=[{p:'sp-size',b:'sb-size',s:d.ss,m:30},{p:'sp-ind',b:'sb-ind',s:d.si,m:25},{p:'sp-sen',b:'sb-sen',s:d.sse,m:25},{p:'sp-tl',b:'sb-tl',s:d.stl,m:20}];
+    sigs.forEach(sig=>{
+      $(sig.p).textContent=sig.s+'/'+sig.m;
+      setTimeout(()=>{$(sig.b).style.width=(sig.s/sig.m*100)+'%';},300);
+    });
+    const rv=$('rep-av'); rv.textContent=d.rep.initials; rv.style.background=d.rep.bg; rv.style.borderColor=d.rep.bdr; rv.style.color=d.rep.c;
+    $('rep-name').textContent=d.rep.name; $('rep-terr').textContent=d.rep.terr;
+    startSLA();
+  }
+
+  function startSLA(){
+    slaSeconds=300; if(slaTimer)clearInterval(slaTimer);
+    $('timer-num').style.color='var(--text)'; $('timer-fill').style.background='var(--green)'; $('timer-fill').style.width='100%';
+    $('timer-status').textContent='● WITHIN SLA'; $('timer-status').className='timer-status ts-ok';
+    $('timer-note').textContent='Rep must contact this lead before the clock reaches 0:00';
+    slaTimer=setInterval(()=>{
+      slaSeconds--;
+      const m=Math.floor(slaSeconds/60), s=slaSeconds%60;
+      $('timer-num').textContent=m+':'+(s<10?'0':'')+s;
+      $('timer-fill').style.width=(slaSeconds/300*100)+'%';
+      if(slaSeconds<=60&&slaSeconds>0){
+        $('timer-num').style.color='var(--amber)'; $('timer-fill').style.background='var(--amber)';
+        $('timer-status').textContent='⚠ SLA EXPIRING SOON'; $('timer-status').className='timer-status ts-warn';
+        $('timer-note').textContent='Manager escalation will fire in '+slaSeconds+' seconds';
+      }
+      if(slaSeconds<=0){
+        clearInterval(slaTimer); $('timer-num').textContent='0:00'; $('timer-num').style.color='var(--red)';
+        $('timer-fill').style.background='var(--red)'; $('timer-fill').style.width='100%';
+        $('timer-status').textContent='🚨 SLA BREACHED — ESCALATION FIRING'; $('timer-status').className='timer-status ts-breach';
+        $('timer-note').textContent='Scenario 2: manager alerted in #velocityiq-velocityiq-sla-escalations channel now';
+      }
+    },1000);
+  }
+
+  $('reset-btn').addEventListener('click',()=>{
+    if(slaTimer)clearInterval(slaTimer);
+    $('s-results').classList.remove('active'); $('s-results').style.display='none';
+    $('s-form').classList.add('active');
+    document.getElementById('demo-form').reset();
+  });
+</script>
+</body>
+</html>
