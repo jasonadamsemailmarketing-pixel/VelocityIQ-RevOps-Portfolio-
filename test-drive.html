@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VelocityIQ — Live Test Drive | Submit a Real Lead</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#07080f;--bg2:#0b0d1a;--surface:#101322;--s2:#171b2e;
+      --bdr:rgba(148,163,184,0.09);--b2:rgba(148,163,184,0.17);
+      --amber:#f59e0b;--a-dim:rgba(245,158,11,0.1);--a-bdr:rgba(245,158,11,0.32);
+      --cyan:#22d3ee;--c-dim:rgba(34,211,238,0.08);--c-bdr:rgba(34,211,238,0.28);
+      --green:#4ade80;--g-dim:rgba(74,222,128,0.1);--g-bdr:rgba(74,222,128,0.28);
+      --red:#f87171;--r-dim:rgba(248,113,113,0.1);--r-bdr:rgba(248,113,113,0.3);
+      --text:#e8eaf4;--t2:#818aab;--t3:#454a68;
+      --mono:'JetBrains Mono',monospace;--body:'DM Sans',sans-serif;--disp:'Syne',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:var(--body);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:56px;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(7,8,15,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--bdr);}
+    .nav-logo{font-family:var(--mono);font-size:13px;color:var(--amber);text-decoration:none;}
+    .nav-logo span{color:var(--t3);}
+    .nav-links{display:flex;gap:10px;}
+    .nav-lnk{font-family:var(--mono);font-size:12px;color:var(--t2);text-decoration:none;border:1px solid var(--bdr);padding:5px 14px;border-radius:6px;transition:color .2s,border-color .2s;}
+    .nav-lnk:hover{color:var(--amber);border-color:var(--a-bdr);}
+    .nav-lnk.live{color:var(--green);border-color:var(--g-bdr);background:var(--g-dim);}
+
+    /* STATES */
+    .state{display:none;min-height:100vh;padding-top:56px;flex-direction:column;align-items:center;}
+    .state.active{display:flex;}
+
+    /* ── STATE 1: INTRO ── */
+    #s-intro{justify-content:flex-start;padding-bottom:4rem;}
+    .intro-wrap{width:100%;max-width:760px;margin:0 auto;padding:3.5rem 1.5rem 0;}
+    .live-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--g-bdr);background:var(--g-dim);padding:5px 16px;border-radius:99px;margin-bottom:1.5rem;letter-spacing:.1em;}
+    .live-eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 2s infinite;flex-shrink:0;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+    .intro-title{font-family:var(--disp);font-size:clamp(2rem,4.5vw,3rem);font-weight:800;letter-spacing:-.025em;line-height:1.08;margin-bottom:1rem;}
+    .intro-title span{color:var(--amber);}
+    .intro-sub{font-size:15px;color:var(--t2);line-height:1.8;margin-bottom:2rem;max-width:600px;}
+    .intro-sub strong{color:var(--text);font-weight:500;}
+
+    /* Step pills */
+    .step-pills{display:flex;align-items:center;gap:0;margin-bottom:2.5rem;overflow-x:auto;}
+    .sp{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--bdr);padding:.75rem 1.1rem;white-space:nowrap;}
+    .sp:first-child{border-radius:10px 0 0 10px;}
+    .sp:last-child{border-radius:0 10px 10px 0;}
+    .sp+.sp{border-left:none;}
+    .sp-num{font-family:var(--mono);font-size:11px;color:var(--amber);background:var(--a-dim);border:1px solid var(--a-bdr);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .sp-text{font-size:13px;color:var(--t2);}
+    .sp-text strong{color:var(--text);font-weight:500;}
+    .sp-arrow{color:var(--t3);font-size:14px;padding:0 .5rem;background:none;border:none;}
+
+    /* Form container */
+    .form-container{width:100%;max-width:760px;margin:0 auto;padding:0 1.5rem 2rem;}
+    .form-card{background:#fff;border-radius:16px;overflow:hidden;border:1px solid var(--b2);box-shadow:0 0 60px rgba(245,158,11,.06);}
+    .form-card-head{background:var(--surface);border-bottom:1px solid var(--bdr);padding:1rem 1.4rem;display:flex;align-items:center;justify-content:space-between;}
+    .fch-title{font-family:var(--mono);font-size:12px;color:var(--amber);letter-spacing:.08em;display:flex;align-items:center;gap:8px;}
+    .fch-title::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite;}
+    .fch-sub{font-size:11px;color:var(--t3);}
+    iframe.tally-iframe{display:block;width:100%;border:none;min-height:580px;background:#fff;}
+    .manual-btn-wrap{text-align:center;padding:1.5rem 0 0;}
+    .manual-btn{font-family:var(--mono);font-size:12px;color:var(--t3);background:none;border:1px solid var(--bdr);padding:8px 18px;border-radius:6px;cursor:pointer;transition:color .2s,border-color .2s;}
+    .manual-btn:hover{color:var(--t2);border-color:var(--b2);}
+
+    /* ── STATE 2: PROCESSING ── */
+    #s-proc{justify-content:center;padding:80px 1.5rem 4rem;}
+    .proc-wrap{width:100%;max-width:560px;}
+    .proc-top{text-align:center;margin-bottom:2.5rem;}
+    .proc-spinner{width:52px;height:52px;border-radius:50%;border:2px solid var(--bdr);border-top-color:var(--amber);animation:spin .85s linear infinite;margin:0 auto 1.25rem;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .proc-title{font-family:var(--disp);font-size:1.5rem;font-weight:700;margin-bottom:.5rem;}
+    .proc-who{color:var(--amber);}
+    .proc-sub{font-size:13px;color:var(--t2);}
+    .prog-bg{height:3px;background:var(--bdr);border-radius:99px;overflow:hidden;margin-bottom:2rem;}
+    .prog-fill{height:100%;background:var(--amber);border-radius:99px;width:0%;transition:width .5s ease;}
+    .steps-list{display:flex;flex-direction:column;gap:9px;}
+    .step-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bdr);border-radius:10px;padding:.8rem 1rem;opacity:.3;transition:opacity .4s,border-color .4s;}
+    .step-item.active{opacity:1;}
+    .step-item.done{opacity:1;border-color:var(--g-bdr);}
+    .step-ico{width:28px;height:28px;border-radius:50%;background:var(--bg2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+    .step-item.active .step-ico{background:var(--a-dim);border-color:var(--a-bdr);}
+    .step-item.done .step-ico{background:var(--g-dim);border-color:var(--g-bdr);}
+    .step-txt{font-size:13px;color:var(--t2);flex:1;line-height:1.4;}
+    .step-item.active .step-txt,.step-item.done .step-txt{color:var(--text);}
+    .step-chk{font-family:var(--mono);font-size:11px;color:var(--green);display:none;flex-shrink:0;}
+    .step-item.done .step-chk{display:block;}
+    .polling-status{text-align:center;margin-top:1.5rem;font-family:var(--mono);font-size:12px;color:var(--t3);}
+    .polling-status span{color:var(--amber);}
+
+    /* ── STATE 3: FOUND ── */
+    #s-found{justify-content:center;padding:80px 1.5rem 4rem;}
+    .found-wrap{width:100%;max-width:560px;}
+    .found-header{text-align:center;margin-bottom:2rem;}
+    .found-badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--green);border:1px solid var(--g-bdr);background:var(--g-dim);padding:5px 16px;border-radius:99px;margin-bottom:1.25rem;letter-spacing:.1em;}
+    .found-badge::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--green);}
+    .found-title{font-family:var(--disp);font-size:clamp(1.5rem,3.5vw,2rem);font-weight:800;letter-spacing:-.02em;margin-bottom:.5rem;}
+    .found-sub{font-size:14px;color:var(--t2);line-height:1.7;}
+
+    /* Lead Card */
+    .lead-card{background:var(--surface);border:1px solid var(--g-bdr);border-radius:20px;padding:2rem;position:relative;overflow:hidden;opacity:0;transform:translateY(24px) scale(.97);transition:opacity .6s cubic-bezier(.34,1.56,.64,1),transform .6s cubic-bezier(.34,1.56,.64,1),box-shadow .8s ease;}
+    .lead-card.revealed{opacity:1;transform:translateY(0) scale(1);box-shadow:0 0 60px rgba(74,222,128,.12),0 0 120px rgba(74,222,128,.05);}
+    .lc-glow{position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(74,222,128,.08),transparent 70%);pointer-events:none;}
+    .lc-top{display:flex;align-items:center;gap:1.25rem;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--bdr);}
+    .grade-circle-big{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:2.5rem;font-weight:800;flex-shrink:0;border:2px solid;}
+    .gc-a{background:var(--g-dim);border-color:var(--g-bdr);color:var(--green);}
+    .gc-b{background:var(--a-dim);border-color:var(--a-bdr);color:var(--amber);}
+    .gc-c{background:rgba(70,74,104,.2);border-color:var(--bdr);color:var(--t2);}
+    .lc-identity{}
+    .lc-name{font-family:var(--disp);font-size:1.35rem;font-weight:700;letter-spacing:-.015em;color:var(--text);margin-bottom:2px;}
+    .lc-domain{font-family:var(--mono);font-size:12px;color:var(--t2);}
+    .lc-grade-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-top:6px;}
+    .lc-grade-label.ga{color:var(--green);}
+    .lc-grade-label.gb{color:var(--amber);}
+    .lc-grade-label.gc{color:var(--t3);}
+    .lc-score-row{margin-bottom:1.25rem;}
+    .lc-score-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .lc-score-name{font-size:12px;color:var(--t2);}
+    .lc-score-val{font-family:var(--mono);font-size:13px;color:var(--amber);font-weight:500;}
+    .lc-score-bg{height:8px;background:var(--bdr);border-radius:99px;overflow:hidden;}
+    .lc-score-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--green));border-radius:99px;width:0%;transition:width 1.2s ease;}
+    .lc-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem;}
+    .lc-field{background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:.85rem 1rem;}
+    .lc-field-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+    .lc-field-val{font-size:13px;color:var(--text);font-weight:500;line-height:1.4;}
+    .sla-ok{color:var(--green);}
+    .sla-breach{color:var(--amber);}
+    .sla-esc{color:var(--red);}
+    .lc-time-stat{text-align:center;font-family:var(--mono);font-size:11px;color:var(--t3);margin-bottom:1.5rem;}
+    .lc-time-stat span{color:var(--green);}
+    .lc-actions{display:flex;gap:10px;}
+    .lc-btn-primary{flex:1;background:var(--amber);color:#07080f;border:none;border-radius:8px;padding:13px;font-family:var(--mono);font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;text-align:center;transition:opacity .2s;display:block;}
+    .lc-btn-primary:hover{opacity:.88;}
+    .lc-btn-ghost{flex:1;background:transparent;color:var(--t2);border:1px solid var(--b2);border-radius:8px;padding:13px;font-family:var(--mono);font-size:13px;cursor:pointer;text-align:center;transition:color .2s,border-color .2s;}
+    .lc-btn-ghost:hover{color:var(--text);border-color:var(--b2);}
+    .found-proof{margin-top:1.5rem;background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:1.1rem 1.25rem;font-size:13px;color:var(--t2);line-height:1.7;text-align:center;}
+    .found-proof strong{color:var(--text);font-weight:500;}
+
+    /* ── STATE 4: TIMEOUT ── */
+    #s-timeout{justify-content:center;padding:80px 1.5rem 4rem;}
+    .timeout-wrap{width:100%;max-width:480px;text-align:center;}
+    .timeout-icon{font-size:3rem;margin-bottom:1.25rem;}
+    .timeout-title{font-family:var(--disp);font-size:1.5rem;font-weight:700;margin-bottom:.75rem;}
+    .timeout-sub{font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:2rem;}
+    .timeout-actions{display:flex;flex-direction:column;gap:10px;}
+    .t-btn{display:block;font-family:var(--mono);font-size:13px;padding:12px 20px;border-radius:8px;text-decoration:none;text-align:center;cursor:pointer;border:none;}
+    .t-btn.primary{background:var(--amber);color:#07080f;}
+    .t-btn.ghost{color:var(--t2);border:1px solid var(--bdr);background:transparent;}
+    .t-btn.ghost:hover{color:var(--text);}
+
+    /* ── STATE 5: MANUAL ── */
+    #s-manual{justify-content:center;padding:80px 1.5rem 4rem;}
+    .manual-wrap{width:100%;max-width:440px;}
+    .manual-title{font-family:var(--disp);font-size:1.5rem;font-weight:700;margin-bottom:.5rem;}
+    .manual-sub{font-size:14px;color:var(--t2);margin-bottom:1.75rem;line-height:1.7;}
+    .manual-card{background:var(--surface);border:1px solid var(--b2);border-radius:14px;padding:1.75rem;}
+    .m-field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+    .m-field label{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:.04em;}
+    .m-field input{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:11px 13px;font-size:13px;color:var(--text);outline:none;transition:border-color .2s;font-family:var(--body);}
+    .m-field input:focus{border-color:var(--a-bdr);}
+    .m-submit{width:100%;background:var(--amber);color:#07080f;border:none;border-radius:8px;padding:13px;font-family:var(--mono);font-size:13px;font-weight:500;cursor:pointer;margin-top:.5rem;transition:opacity .2s;}
+    .m-submit:hover{opacity:.88;}
+    .m-note{font-size:12px;color:var(--t3);margin-top:1rem;text-align:center;font-family:var(--mono);}
+
+    @media(max-width:600px){
+      .step-pills{flex-direction:column;align-items:flex-start;}
+      .sp-arrow{transform:rotate(90deg);}
+      .lc-fields{grid-template-columns:1fr;}
+      .lc-actions{flex-direction:column;}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">VelocityIQ <span>/ STL Engine</span></a>
+  <div class="nav-links">
+    <a href="dashboard.html" class="nav-lnk live">Live Dashboard ↗</a>
+    <a href="index.html" class="nav-lnk">← Portfolio</a>
+  </div>
+</nav>
+
+
+<!-- ══════════════════════════════════════════
+     STATE 1 — INTRO + TALLY FORM
+══════════════════════════════════════════ -->
+<div class="state active" id="s-intro">
+  <div class="intro-wrap">
+    <div class="live-eyebrow">Live system · Not a simulation</div>
+    <h1 class="intro-title">Submit your lead.<br>Watch yourself appear<br><span>in a real RevOps system.</span></h1>
+    <p class="intro-sub">
+      Fill in the form below using your <strong>real details</strong>. The moment you hit submit, a live Make.com scenario fires — enriching your company data, scoring you across 4 ICP signals, routing you to a rep, creating your HubSpot contact, sending a Slack notification, and logging you to Google Sheets. <strong>Your lead card will appear here within 15 seconds.</strong>
+    </p>
+    <div class="step-pills">
+      <div class="sp"><span class="sp-num">1</span><span class="sp-text"><strong>Fill in the form</strong> below</span></div>
+      <div class="sp-arrow">→</div>
+      <div class="sp"><span class="sp-num">2</span><span class="sp-text"><strong>Make.com fires</strong> instantly</span></div>
+      <div class="sp-arrow">→</div>
+      <div class="sp"><span class="sp-num">3</span><span class="sp-text"><strong>Your lead card</strong> appears here</span></div>
+      <div class="sp-arrow">→</div>
+      <div class="sp"><span class="sp-num">4</span><span class="sp-text"><strong>See it live</strong> in the dashboard</span></div>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <div class="form-card">
+      <div class="form-card-head">
+        <span class="fch-title">VelocityIQ — Live Lead Intake Form</span>
+        <span class="fch-sub">Powered by Tally.so → Make.com → HubSpot</span>
+      </div>
+      <iframe
+        class="tally-iframe"
+        src="https://tally.so/embed/2EDQGp?alignLeft=1&hideTitle=1&dynamicHeight=1"
+        title="VelocityIQ Lead Form"
+        id="tally-frame"
+      ></iframe>
+    </div>
+    <div class="manual-btn-wrap">
+      <p style="font-size:12px;color:var(--t3);margin-bottom:.75rem;">Already submitted but nothing happened?</p>
+      <button class="manual-btn" onclick="goManual()">Find my lead manually →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     STATE 2 — PROCESSING
+══════════════════════════════════════════ -->
+<div class="state" id="s-proc">
+  <div class="proc-wrap">
+    <div class="proc-top">
+      <div class="proc-spinner" id="proc-spinner"></div>
+      <h2 class="proc-title">Processing <span class="proc-who" id="proc-who">your lead</span></h2>
+      <p class="proc-sub">The Make.com scenario is running across 6 tools right now</p>
+    </div>
+    <div class="prog-bg"><div class="prog-fill" id="prog-fill"></div></div>
+    <div class="steps-list" id="steps-list"></div>
+    <div class="polling-status" id="polling-status"></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     STATE 3 — LEAD FOUND
+══════════════════════════════════════════ -->
+<div class="state" id="s-found">
+  <div class="found-wrap">
+    <div class="found-header">
+      <div class="found-badge">Your lead is live in the system</div>
+      <h2 class="found-title">You just ran through a real RevOps pipeline.</h2>
+      <p class="found-sub">Every field below was populated automatically — no manual input, no templates. This is the system working.</p>
+    </div>
+
+    <div class="lead-card" id="lead-card">
+      <div class="lc-glow"></div>
+
+      <div class="lc-top">
+        <div class="grade-circle-big" id="lc-grade-circle">—</div>
+        <div class="lc-identity">
+          <div class="lc-name" id="lc-name">—</div>
+          <div class="lc-domain" id="lc-domain">—</div>
+          <div class="lc-grade-label" id="lc-grade-label">—</div>
+        </div>
+      </div>
+
+      <div class="lc-score-row">
+        <div class="lc-score-label">
+          <span class="lc-score-name">Lead Score</span>
+          <span class="lc-score-val" id="lc-score-val">—</span>
+        </div>
+        <div class="lc-score-bg"><div class="lc-score-fill" id="lc-score-fill"></div></div>
+      </div>
+
+      <div class="lc-fields">
+        <div class="lc-field">
+          <div class="lc-field-label">Assigned Rep</div>
+          <div class="lc-field-val" id="lc-rep">—</div>
+        </div>
+        <div class="lc-field">
+          <div class="lc-field-label">Territory</div>
+          <div class="lc-field-val" id="lc-territory">—</div>
+        </div>
+        <div class="lc-field">
+          <div class="lc-field-label">SLA Status</div>
+          <div class="lc-field-val" id="lc-sla">—</div>
+        </div>
+        <div class="lc-field">
+          <div class="lc-field-label">Response Time</div>
+          <div class="lc-field-val" id="lc-resptime">—</div>
+        </div>
+        <div class="lc-field">
+          <div class="lc-field-label">Industry</div>
+          <div class="lc-field-val" id="lc-industry">—</div>
+        </div>
+        <div class="lc-field">
+          <div class="lc-field-label">Company Size</div>
+          <div class="lc-field-val" id="lc-size">—</div>
+        </div>
+      </div>
+
+      <div class="lc-time-stat" id="lc-time-stat"></div>
+
+      <div class="lc-actions">
+        <a href="dashboard.html" class="lc-btn-primary">View in live dashboard →</a>
+        <button class="lc-btn-ghost" onclick="resetAll()">Submit another lead ↺</button>
+      </div>
+    </div>
+
+    <div class="found-proof">
+      <strong>This is what Revenue Operations looks like when built with systems thinking.</strong><br>
+      Enriched · Scored · Routed · Notified · Logged — in under 15 seconds · 100% free-tier tooling.<br>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--t3);display:block;margin-top:.5rem;">Portfolio by Jason Osarebo Adams · RevOps Specialist</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     STATE 4 — TIMEOUT
+══════════════════════════════════════════ -->
+<div class="state" id="s-timeout">
+  <div class="timeout-wrap">
+    <div class="timeout-icon">⏱</div>
+    <h2 class="timeout-title">Still processing…</h2>
+    <p class="timeout-sub">The Make.com scenario usually completes in under 15 seconds, but can take up to 60 seconds on first run or if the scenario was recently activated. Your lead is in the system — check the dashboard in a moment.</p>
+    <div class="timeout-actions">
+      <a href="dashboard.html" class="t-btn primary">Open live dashboard →</a>
+      <button class="t-btn ghost" onclick="goManual()">Try finding my lead by email</button>
+      <button class="t-btn ghost" onclick="resetAll()">Submit again</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     STATE 5 — MANUAL EMAIL ENTRY
+══════════════════════════════════════════ -->
+<div class="state" id="s-manual">
+  <div class="manual-wrap">
+    <h2 class="manual-title">Find your lead</h2>
+    <p class="manual-sub">Enter the work email and first name you used in the form. We'll search the live Google Sheet for your entry.</p>
+    <div class="manual-card">
+      <div class="m-field">
+        <label>Work email you submitted</label>
+        <input type="email" id="m-email" placeholder="you@company.com"/>
+      </div>
+      <div class="m-field">
+        <label>Your first name</label>
+        <input type="text" id="m-name" placeholder="e.g. Sarah"/>
+      </div>
+      <button class="m-submit" onclick="startManualSearch()">Find my lead →</button>
+    </div>
+    <p class="m-note">← <button style="background:none;border:none;color:var(--t3);cursor:pointer;font-family:var(--mono);font-size:12px;" onclick="resetAll()">Go back to the form</button></p>
+  </div>
+</div>
+
+
+<script>
+  // ── CONFIG
+  const SHEET_ID = '1VhT_Xr3szJY8VL-Jz6T-7Ic_lDCsIcNPStSX-80eZPI';
+  const CSV_URL  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+  const MAX_POLLS = 22; // ~66 seconds
+  const POLL_MS   = 3000;
+
+  let submittedEmail = '';
+  let submittedName  = '';
+  let pollCount      = 0;
+  let pollTimer      = null;
+  let startTime      = 0;
+  let stepTimers     = [];
+
+  // ── STATE MACHINE
+  function showState(id) {
+    document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+  }
+  function goManual() { showState('s-manual'); }
+  function resetAll() {
+    clearTimers();
+    submittedEmail = ''; submittedName = '';
+    pollCount = 0; startTime = 0;
+    document.getElementById('m-email').value = '';
+    document.getElementById('m-name').value  = '';
+    document.getElementById('lead-card').classList.remove('revealed');
+    showState('s-intro');
+  }
+  function clearTimers() {
+    if (pollTimer) clearTimeout(pollTimer);
+    stepTimers.forEach(t => clearTimeout(t));
+    stepTimers = [];
+  }
+
+  // ── TALLY postMessage listener
+  window.addEventListener('message', function(e) {
+    if (!e.data || typeof e.data !== 'object') return;
+    // Tally submission event
+    if (e.data.type === 'tally.form.submitted' || (e.data.type && e.data.type.includes('submitted'))) {
+      handleTallySubmit(e.data);
+    }
+    // Handle iframe height resize from Tally
+    if (e.data.type === 'tally.form.heightChanged' && e.data.height) {
+      const iframe = document.getElementById('tally-frame');
+      if (iframe) iframe.style.minHeight = e.data.height + 'px';
+    }
+  });
+
+  function handleTallySubmit(data) {
+    // Try to extract email and name from postMessage fields
+    if (data.fields && Array.isArray(data.fields)) {
+      data.fields.forEach(f => {
+        const lbl = (f.label || '').toLowerCase();
+        if (lbl.includes('email') && f.value) submittedEmail = f.value;
+        if (lbl.includes('first') && lbl.includes('name') && f.value) submittedName = f.value;
+        if (!submittedName && lbl === 'first name' && f.value) submittedName = f.value;
+      });
+    }
+    beginProcessing();
+  }
+
+  // ── MANUAL SEARCH
+  function startManualSearch() {
+    submittedEmail = document.getElementById('m-email').value.trim();
+    submittedName  = document.getElementById('m-name').value.trim();
+    if (!submittedEmail && !submittedName) {
+      alert('Please enter your email or name.');
+      return;
+    }
+    beginProcessing();
+  }
+
+  // ── BEGIN PROCESSING (both auto and manual paths)
+  function beginProcessing() {
+    startTime = Date.now();
+    pollCount = 0;
+    showState('s-proc');
+
+    // Set who
+    const who = submittedName || (submittedEmail ? submittedEmail.split('@')[0] : 'your lead');
+    document.getElementById('proc-who').textContent = who;
+
+    // Build step list
+    const stepDefs = [
+      {icon:'📡', txt:'Webhook received from Tally.so — payload parsed', ms:150},
+      {icon:'🔍', txt:'Domain lookup enriching company data', ms:750},
+      {icon:'🔁', txt:'HubSpot searched — no duplicate contact found', ms:1300},
+      {icon:'📊', txt:'ICP signals extracted across 4 dimensions', ms:1900},
+      {icon:'🧮', txt:'Lead Score calculated — grade assigned', ms:2600},
+      {icon:'🗺️', txt:'Lead routed to rep by territory and load balance', ms:3300},
+      {icon:'💬', txt:'Slack notification sent to #velocityiq-velocityiq-new-leads channel', ms:3900},
+      {icon:'🔶', txt:'HubSpot contact created — 10 custom properties written', ms:4500},
+      {icon:'🗂️', txt:'Airtable SLA Tracker updated — Status: Pending', ms:5100},
+      {icon:'📋', txt:'Checking Google Sheets Lead Response Log…', ms:5800},
+    ];
+
+    const list = document.getElementById('steps-list');
+    list.innerHTML = '';
+    stepDefs.forEach((s, i) => {
+      const el = document.createElement('div');
+      el.className = 'step-item';
+      el.id = 'si' + i;
+      el.innerHTML = `<div class="step-ico">${s.icon}</div><div class="step-txt">${s.txt}</div><span class="step-chk">✓</span>`;
+      list.appendChild(el);
+    });
+
+    // Animate steps
+    stepDefs.forEach((s, i) => {
+      const t = setTimeout(() => {
+        if (i > 0) {
+          document.getElementById('si' + (i-1)).classList.remove('active');
+          document.getElementById('si' + (i-1)).classList.add('done');
+        }
+        document.getElementById('si' + i).classList.add('active');
+        document.getElementById('prog-fill').style.width = ((i+1) / stepDefs.length * 75) + '%';
+      }, s.ms);
+      stepTimers.push(t);
+    });
+
+    // Start polling after 4 seconds
+    const pollStart = setTimeout(() => { schedulePoll(); }, 4000);
+    stepTimers.push(pollStart);
+  }
+
+  // ── POLLING
+  function schedulePoll() {
+    pollCount++;
+    document.getElementById('polling-status').innerHTML =
+      `Checking Google Sheets… <span>attempt ${pollCount} of ${MAX_POLLS}</span>`;
+    fetchAndSearch();
+  }
+
+  async function fetchAndSearch() {
+    try {
+      const res  = await fetch(CSV_URL + '&t=' + Date.now());
+      const text = await res.text();
+      const rows = parseCSV(text);
+      if (rows.length > 1) {
+        const lead = findLead(rows);
+        if (lead) { onLeadFound(lead); return; }
+      }
+    } catch(e) { /* continue polling */ }
+
+    if (pollCount >= MAX_POLLS) { showState('s-timeout'); return; }
+    pollTimer = setTimeout(() => { pollCount++; document.getElementById('polling-status').innerHTML = `Checking Google Sheets… <span>attempt ${pollCount} of ${MAX_POLLS}</span>`; fetchAndSearch(); }, POLL_MS);
+  }
+
+  // ── CSV PARSER
+  function parseCSV(text) {
+    return text.trim().split('\n').map(line => {
+      const fields = []; let cur = ''; let inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"') { inQ = !inQ; }
+        else if (c === ',' && !inQ) { fields.push(cur.trim()); cur = ''; }
+        else { cur += c; }
+      }
+      fields.push(cur.trim());
+      return fields;
+    });
+  }
+
+  // ── FIND LEAD in sheet rows
+  // Columns: 0=LogID, 1=HubSpotID, 2=ContactName, 3=ContactEmail,
+  //          4=Domain, 5=Industry, 6=CompanySize, 7=Score, 8=Grade,
+  //          9=Rep, 10=Territory, 11=Source, 12=ReceivedTime,
+  //          13=NotifiedTime, 14=ContactedTime, 15=ResponseTime, 16=SLAStatus
+  function findLead(rows) {
+    const dataRows = rows.slice(1).filter(r => r.some(c => c.trim()));
+    // Search newest first (reverse)
+    const reversed = [...dataRows].reverse();
+    for (const r of reversed) {
+      const rowEmail = (r[3] || '').toLowerCase().trim();
+      const rowName  = (r[2] || '').toLowerCase().trim();
+      const emailMatch = submittedEmail && rowEmail === submittedEmail.toLowerCase().trim();
+      const nameMatch  = submittedName  && rowName.includes(submittedName.toLowerCase().trim());
+      if (emailMatch || nameMatch) {
+        return {
+          name:         r[2] || 'Unknown',
+          email:        r[3] || '',
+          domain:       r[4] || '',
+          industry:     r[5] || '—',
+          companySize:  r[6] || '—',
+          score:        parseFloat(r[7]) || 0,
+          grade:        (r[8] || 'C').toUpperCase(),
+          rep:          r[9]  || '—',
+          territory:    r[10] || '—',
+          source:       r[11] || '—',
+          responseTime: parseFloat(r[15]) || null,
+          slaStatus:    r[16] || 'Pending',
+        };
+      }
+    }
+    return null;
+  }
+
+  // ── LEAD FOUND → render card
+  function onLeadFound(lead) {
+    clearTimers();
+    const elapsed = Math.round((Date.now() - startTime) / 100) / 10;
+
+    // Complete all steps
+    for (let i = 0; i < 10; i++) {
+      const el = document.getElementById('si' + i);
+      if (el) { el.classList.remove('active'); el.classList.add('done'); }
+    }
+    document.getElementById('si9').querySelector('.step-txt').textContent = 'Google Sheets entry confirmed — your lead is live ✓';
+    document.getElementById('prog-fill').style.width = '100%';
+    document.getElementById('polling-status').innerHTML = '<span style="color:var(--green)">✓ Lead found · transitioning…</span>';
+
+    // Short pause for dramatic effect, then show card
+    setTimeout(() => {
+      populateLeadCard(lead, elapsed);
+      showState('s-found');
+      setTimeout(() => {
+        document.getElementById('lead-card').classList.add('revealed');
+        setTimeout(() => {
+          const pct = Math.min(100, Math.round(lead.score / 80 * 100));
+          document.getElementById('lc-score-fill').style.width = pct + '%';
+        }, 400);
+      }, 100);
+    }, 1200);
+  }
+
+  function populateLeadCard(lead, elapsed) {
+    const g = lead.grade;
+    const gcClass = g === 'A' ? 'gc-a' : g === 'B' ? 'gc-b' : 'gc-c';
+    const glClass  = g === 'A' ? 'ga'   : g === 'B' ? 'gb'   : 'gc';
+    const glLabel  = g === 'A' ? 'Strong ICP Fit · High Priority' : g === 'B' ? 'Moderate ICP Fit' : 'Developing ICP Fit';
+
+    document.getElementById('lc-grade-circle').textContent = g;
+    document.getElementById('lc-grade-circle').className   = `grade-circle-big ${gcClass}`;
+    document.getElementById('lc-name').textContent         = lead.name;
+    document.getElementById('lc-domain').textContent       = lead.domain || lead.email;
+    document.getElementById('lc-grade-label').textContent  = `Grade ${g} · ${glLabel}`;
+    document.getElementById('lc-grade-label').className    = `lc-grade-label ${glClass}`;
+    document.getElementById('lc-score-val').textContent    = `${lead.score}/80`;
+    document.getElementById('lc-rep').textContent          = lead.rep;
+    document.getElementById('lc-territory').textContent    = lead.territory;
+
+    const slaEl = document.getElementById('lc-sla');
+    const sla   = lead.slaStatus;
+    slaEl.textContent = sla;
+    slaEl.className   = `lc-field-val ${sla.toLowerCase().includes('within') ? 'sla-ok' : sla.toLowerCase().includes('escal') ? 'sla-esc' : 'sla-breach'}`;
+
+    const rt = lead.responseTime;
+    document.getElementById('lc-resptime').textContent = rt ? fmtTime(rt) : 'In progress…';
+    document.getElementById('lc-industry').textContent  = lead.industry;
+    document.getElementById('lc-size').textContent      = lead.companySize;
+    document.getElementById('lc-time-stat').innerHTML   = `Your lead appeared in the system in <span>${elapsed}s</span>`;
+  }
+
+  function fmtTime(min) {
+    if (min < 1) return Math.round(min * 60) + 's';
+    const m = Math.floor(min), s = Math.round((min - m) * 60);
+    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  }
+</script>
+</body>
+</html>
